@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const tempMovieData = [
   {
@@ -50,9 +50,27 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "b0e9b433";
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const query = "matrix";
+
+  useEffect(function () {
+    async function fetchMovies() {
+      setIsLoading(true);
+      const res = await fetch(
+        `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+      );
+      const data = await res.json();
+      setMovies(data.Search);
+      setIsLoading(false);
+    }
+    fetchMovies();
+  }, []);
+
   return (
     <>
       <NavBar>
@@ -60,9 +78,7 @@ export default function App() {
         <NumResults movies={movies} />
       </NavBar>
       <MainContent>
-        <Box>
-          <MovieList movies={movies} />
-        </Box>
+        <Box>{isLoading ? <Loader /> : <MovieList movies={movies} />}</Box>
         <Box>
           <WatchedSumm watched={watched} />
           <WatchedMovieList watched={watched} />
@@ -70,6 +86,10 @@ export default function App() {
       </MainContent>
     </>
   );
+}
+
+function Loader() {
+  return <p className="loader">Loading</p>;
 }
 
 function NavBar({ children }) {
@@ -115,28 +135,6 @@ function Search() {
 function MainContent({ children }) {
   return <main className="main">{children}</main>;
 }
-
-// function WatchedBox() {
-//   const [watched, setWatched] = useState(tempWatchedData);
-//   const [isOpen2, setIsOpen2] = useState(true);
-
-//   return (
-//     <div className="box">
-//       <button
-//         className="btn-toggle"
-//         onClick={() => setIsOpen2((open) => !open)}
-//       >
-//         {isOpen2 ? "–" : "+"}
-//       </button>
-//       {isOpen2 && (
-// <>
-//   <WatchedSumm watched={watched} />
-//   <WatchedMovieList watched={watched} />
-// </>
-//       )}
-//     </div>
-//   );
-// }
 
 function Box({ children }) {
   const [isOpen, setIsOpen] = useState(true);
